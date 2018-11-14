@@ -1,12 +1,14 @@
 from __future__ import print_function
-import boto3
 import sys
+import boto3
+import hashlib
+import datetime
 
-dynamodb = boto3.resource('dynamodb', region_name='us-east-1')
+client = boto3.client('dynamodb', region_name='us-east-1')
 
 def create_fs(namespace):
     # Create a table for metadata merkle tree
-    table = dynamodb.create_table(
+    table = client.create_table(
         TableName=namespace,
         KeySchema=[
             {
@@ -25,8 +27,38 @@ def create_fs(namespace):
             'WriteCapacityUnits': 10
         }
     )
+    print("Creating table...")
 
-    print("Metadata table status:", table.table_status)
+    # Initialize table with empty root directory hash
+    waiter = client.get_waiter('table_exists')
+    waiter.wait(TableName=namespace)
+    hasher = hashlib.sha256()
+
+    print("Table successfully created")
+    response = client.put_item(
+        TableName=namespace,
+        Item={
+            'cksum': {
+                'S': hasher.hexdigest()
+            },
+            'name': {
+                'S': 'root'
+            },
+            'is_dir': {
+                'BOOL': True
+            },
+            'mod_time': {
+                'S': datetime.datetime.now().strftime('%Y-%m-%dT%H:%M:%S')
+            },
+            'mod_user': {
+                'S': 'admin'
+            }
+        }
+    )
+
+    # Create S3 bucket
+
+    # Add fs to root_pointers table
 
 if __name__ == "__main__":
     namespace = sys.argv[1]
