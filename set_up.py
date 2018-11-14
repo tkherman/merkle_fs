@@ -1,6 +1,7 @@
 from __future__ import print_function
 import sys
 import boto3
+import botocoreZ
 import hashlib
 import datetime
 
@@ -10,6 +11,7 @@ s3 = boto3.resource('s3')
 
 def create_fs(namespace):
     # Create a table for metadata merkle tree
+    print("Creating table...")
     table = dbClient.create_table(
         TableName=namespace,
         KeySchema=[
@@ -29,7 +31,6 @@ def create_fs(namespace):
             'WriteCapacityUnits': 10
         }
     )
-    print("Creating table...")
 
     # Initialize table with empty root directory hash
     waiter = dbClient.get_waiter('table_exists')
