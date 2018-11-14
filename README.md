@@ -35,6 +35,9 @@ Use Python built in hashlib, sha256, and exchange over network as hex string
 
 ---
 ### Operations
+
+*(Note: on all of the below if an invalid filepath is entered, return an error)*
+
 - PUT
     - traverse through merkle tree to identify node
     - check if node mod_user was self
@@ -53,3 +56,11 @@ Use Python built in hashlib, sha256, and exchange over network as hex string
 - GET
     - traverse through merkle tree to identify node
     - fetch file and save to local
+
+- LS
+    - traverse through merkle tree to find node (should be a directory node)
+    - check if is_dir
+        - if yes:
+            - go through dir_info, collect all filenames, and return
+        - if no:
+            - return the name of the file
