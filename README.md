@@ -44,7 +44,7 @@ Use Python built in hashlib, sha256, and exchange over network as hex string
         - if yes:
             - calculate checksum of new file
             - add file to s3 (use s3 versioning)
-            - create new node for file
+            - create new node for file (while altering the proper pointers)
             - modify prev_version and next_version of new and old node
             - bubble up and make new nodes for all ancestors
         - if no:
@@ -64,3 +64,11 @@ Use Python built in hashlib, sha256, and exchange over network as hex string
             - go through dir_info, collect all filenames, and return
         - if no:
             - return the name of the file
+- CP
+    - traverse through merkle tree to find node of source file
+    - traverse through merkle tree to find node of destination directory
+    - steps to add file to new directory:
+        - calculate checksum of new file
+        - duplicate the file in s3 and properly name it
+        - create new node for file
+        - bubble up and make new nodes for all ancestors (while altering the proper pointers)
