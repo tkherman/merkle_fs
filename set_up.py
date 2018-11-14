@@ -4,11 +4,13 @@ import boto3
 import hashlib
 import datetime
 
-client = boto3.client('dynamodb', region_name='us-east-1')
+dbClient = boto3.client('dynamodb', region_name='us-east-1')
+s3Client = boto3.client('s3', region_name='us-east-1')
+s3 = boto3.resource('s3')
 
 def create_fs(namespace):
     # Create a table for metadata merkle tree
-    table = client.create_table(
+    table = dbClient.create_table(
         TableName=namespace,
         KeySchema=[
             {
@@ -30,12 +32,12 @@ def create_fs(namespace):
     print("Creating table...")
 
     # Initialize table with empty root directory hash
-    waiter = client.get_waiter('table_exists')
+    waiter = dbClient.get_waiter('table_exists')
     waiter.wait(TableName=namespace)
     hasher = hashlib.sha256()
 
     print("Table successfully created")
-    response = client.put_item(
+    response = dbClient.put_item(
         TableName=namespace,
         Item={
             'cksum': {
@@ -57,8 +59,35 @@ def create_fs(namespace):
     )
 
     # Create S3 bucket
+    bucket_name = 'git-storage-{}-bucket'.format(namespace.lower())
+    print("Creating S3 bucket: {} ...".format(bucket_name))
+    try:
+        response = s3Client.create_bucket(
+            Bucket=bucket_name
+        )
+        bucket_versioning = s3.BucketVersioning(bucket_name)
+        bucket_versioning.enable()
+        print("S3 bucket created successfully")
+    except:
+        print("Failed to create S3 bucket")
 
     # Add fs to root_pointers table
+    print("Updating root_pointers table...")
+    response = dbClient.put_item(
+        TableName='root_pointers',
+        Item={
+            'name': {
+                'S': namespace
+            },
+            'cksum': {
+                'S': hasher.hexdigest()
+            },
+            'bucket_name': {
+                'S': bucket_name
+            }
+        }
+    )
+    print("{} set up completed".format(namespace))
 
 if __name__ == "__main__":
     namespace = sys.argv[1]

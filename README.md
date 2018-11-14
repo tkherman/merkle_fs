@@ -2,6 +2,10 @@
 Distributed file system that keeps a customizable number of past file versions
 
 ---
+### Notes
+- Name of filesystem must contain only lowercase letters and hyphen(-)
+
+---
 ### DB Schema
 
 ##### root_pointers
@@ -28,5 +32,6 @@ Distributed file system that keeps a customizable number of past file versions
 ### Hashing
 Use Python built in hashlib, sha256, and exchange over network as hex string
 
+---
 ### Operations
 
