@@ -20,6 +20,7 @@ Distributed file system that keeps a customizable number of past file versions
     - cksum
 - values
     - name              (string)
+    - abs_path          (string)
     - prev_version      (string)
     - next_version      (string)
     - parent_node       (string)
