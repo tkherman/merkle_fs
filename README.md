@@ -57,6 +57,12 @@ Use Python built in hashlib, sha256, and exchange over network as hex string
     - traverse through merkle tree to identify node
     - fetch file and save to local
 
+- MKDIR
+    - traverse through merkle tree to find the parent node for the new directory
+    - calculate checksum of new directory
+    - create new node for the new directory
+    - bubble up and make new nodes for all ancestors
+
 - LS
     - traverse through merkle tree to find node (should be a directory node)
     - check if is_dir
