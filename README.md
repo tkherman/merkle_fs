@@ -72,3 +72,25 @@ Use Python built in hashlib, sha256, and exchange over network as hex string
         - duplicate the file in s3 and properly name it
         - create new node for file
         - bubble up and make new nodes for all ancestors (while altering the proper pointers)
+- RM
+    - traverse through merkle tree to identify the node
+    - generate a new checksum for the new parent node
+    - create a new node for the parent directory without the target file in it
+        (while altering the proper pointers)
+    - modify prev_version and next_version of new and old node
+    - bubble up and make new nodes for all ancestors
+- RMDIR
+    - traverse through merkle tree to identify the node
+    - generate a new checksum for the new parent node
+    - create a new node for the parent directory without any children
+    - modify prev_version and next_version of new and old node
+    - bubble up and make new nodes for all ancestors
+- MV
+    - traverse through merkle tree to find node of source file and store in memory
+    - traverse through merkle tree to find node of destination directory
+    - perform a RM on the source file
+    - steps to add file to new directory
+        - calculate checksum of new file 
+        - create new node for file (even though it's the same file, need to create new node for versioning)
+        - bubble up and make new nodes for all ancestors (while altering the proper pointers)
+        
