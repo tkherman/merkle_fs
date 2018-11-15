@@ -22,6 +22,7 @@ Distributed file system that keeps a customizable number of past file versions
     - name              (string)
     - prev_version      (string)
     - next_version      (string)
+    - parent_node       (string)
     - is_dir            (boolean)
     - s3_ref            (list of lists) / if we set cksum to be file name, then
       we don't need this, can keep track of versions I suppose
