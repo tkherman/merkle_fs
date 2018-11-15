@@ -1,7 +1,7 @@
 from __future__ import print_function
 import sys
 import boto3
-import botocoreZ
+import botocore
 import hashlib
 import datetime
 
