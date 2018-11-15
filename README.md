@@ -20,14 +20,13 @@ Distributed file system that keeps a customizable number of past file versions
     - cksum
 - values
     - name              (string)
-    - abs_path          (string)
     - prev_version      (string)
     - next_version      (string)
     - parent_node       (string)
     - is_dir            (boolean)
     - s3_ref            (list of lists) / if we set cksum to be file name, then
       we don't need this, can keep track of versions I suppose
-    - dir_info          (list of lists)
+    - dir_info          (list of lists) - (name, cksum) - first is (abspath, None)
     - mod_time          (string)
     - mod_user          (string)
 
