@@ -44,6 +44,7 @@ def fetch_node(fs, cksum):
     mNode.name = item.get('name', None)
     mNode.prev_version = item.get('prev_version', None)
     mNode.next_version = item.get('next_version', None)
+    mNode.parent_node = item.get('parent_node', None)
     mNode.is_dir = item.get('is_dir', None)
     mNode.s3_ref = item.get('s3_ref', None)
     mNode.dir_info = item.get('s3_ref', None)
