@@ -1,12 +1,27 @@
 from __future__ import print_function
 import boto3
+import hashlib
+import datetime
+import os.path
+import getpass
 
-from MerkleNode import MerkleNode, fetch_node, get_file_node
+from MerkleNode import MerkleNode, fetch_node, get_merkle_node_by_name, insert_node
 
 dynamodb = boto3.resource('dynamodb', region_name='us-east-1')
 s3 = boto3.resource('s3')
 
+def calculate_cksum(src_filepath):
+    hasher = hashlib.sha256()
+    with open(src_filepath, "rb") as f:
+        for chunk in iter(lambda: f.read(4096), b""):
+            hasher.update(chunk)
+
+    return hasher.hexdigest()
+
 def PUT(fs, src_filepath, dest_filepath):
+    if not os.path.isfile(src_filepath):
+        return "{} is not a local file".format(src_filepath)
+
     # Fetch root node for fs
     root_ptrs_table = dynamodb.Table('root_pointers')
     try:
@@ -41,3 +56,21 @@ def PUT(fs, src_filepath, dest_filepath):
             original_fnode = fetch_node(fs, sub_f[1])
 
     # Create MerkleNode object for new node
+    newNode = MerkleNode()
+    newNode.cksum = calculate_cksum(src_filepath)
+    newNode.name = dest_filepath[-1]
+    if original_fnode:
+        newNode.prev_version = original_fnode.cksum
+    newNode.is_dir = False
+    newNode.mod_time = datetime.datetime.now().strftime('%Y-%m-%dT%H:%M:%S')
+    newNode.mod_user = getpass.getuser()
+
+    if not insert_node(fs, newNode):
+        return "Failed to update DB"
+
+    # Place actual file to S3 with name==cksum
+    s3.meta.client.upload_file(src_filepath, s3_bucket, newNode.cksum)
+
+    # Bubble up and create new node for all ancestors
+
+print(PUT("testfstwo", "README.md", "/README.md"))

@@ -1,6 +1,7 @@
 from __future__ import print_function
 import sys
 import boto3
+import hashlib
 from botocore.exceptions import ClientError
 
 dynamodb = boto3.resource('dynamodb', region_name='us-east-1')
@@ -13,8 +14,8 @@ class MerkleNode:
         self.next_version = None
         self.parent_node = None
         self.is_dir = None
-        self.s3_ref = list()
-        self.dir_info = list()
+        self.s3_ref = None
+        self.dir_info = None
         self.mod_time = None
         self.mod_user = None
 
@@ -96,6 +97,21 @@ def insert_node(fs, mNode):
         return False
 
     return True
+
+# Take dir_info list and return cksum of directory
+def calculate_dir_cksum(dir_info):
+    hasher = hashlib.sha256()
+    hasher.update(dir_info[0])
+
+    if len(dir_info) == 1:
+        return hasher.hexdigest()
+
+    for sub_info in dir_info[1:]:
+        hasher.update(sub_info[0])
+        hasher.update(sub_info[1])
+
+    return hasher.hexdigest()
+
 
 def get_merkle_node_by_name(fs, curr_node, path_list, node_traversed=None):
     if node_traversed:

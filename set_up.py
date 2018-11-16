@@ -4,8 +4,12 @@ import boto3
 import botocore
 import hashlib
 import datetime
+import getpass
+
+from MerkleNode import calculate_dir_cksum
 
 dbClient = boto3.client('dynamodb', region_name='us-east-1')
+dynamodb = boto3.resource('dynamodb', region_name='us-east-1')
 s3Client = boto3.client('s3', region_name='us-east-1')
 s3 = boto3.resource('s3')
 
@@ -35,27 +39,19 @@ def create_fs(namespace):
     # Initialize table with empty root directory hash
     waiter = dbClient.get_waiter('table_exists')
     waiter.wait(TableName=namespace)
-    hasher = hashlib.sha256()
 
     print("Table successfully created")
-    response = dbClient.put_item(
-        TableName=namespace,
+    fs_table = dynamodb.Table(namespace)
+    response = fs_table.put_item(
         Item={
-            'cksum': {
-                'S': hasher.hexdigest()
-            },
-            'name': {
-                'S': 'root'
-            },
-            'is_dir': {
-                'BOOL': True
-            },
-            'mod_time': {
-                'S': datetime.datetime.now().strftime('%Y-%m-%dT%H:%M:%S')
-            },
-            'mod_user': {
-                'S': 'admin'
-            }
+            'cksum': calculate_dir_cksum(['/']),
+            'name': '/',
+            'prev_version': None
+            'next_version': None
+            'is_dir': True,
+            'dir_info': ['/'],
+            'mod_time': datetime.datetime.now().strftime('%Y-%m-%dT%H:%M:%S'),
+            'mod_user': getpass.getuser()
         }
     )
 
@@ -81,7 +77,7 @@ def create_fs(namespace):
                 'S': namespace
             },
             'cksum': {
-                'S': hasher.hexdigest()
+                'S': calculate_dir_cksum(['/'])
             },
             'bucket_name': {
                 'S': bucket_name
