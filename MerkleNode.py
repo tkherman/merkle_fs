@@ -36,8 +36,6 @@ def fetch_node(fs, cksum):
     if not item:
         return None
 
-    print(item)
-
     # Create MerkleNode object
     mNode = MerkleNode()
     mNode.cksum = cksum
@@ -47,7 +45,7 @@ def fetch_node(fs, cksum):
     mNode.parent_node = item.get('parent_node', None)
     mNode.is_dir = item.get('is_dir', None)
     mNode.s3_ref = item.get('s3_ref', None)
-    mNode.dir_info = item.get('s3_ref', None)
+    mNode.dir_info = item.get('dir_info', None)
     mNode.mod_time = item.get('mod_time', None)
     mNode.mod_user = item.get('mod_user', None)
 
