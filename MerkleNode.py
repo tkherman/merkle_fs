@@ -11,7 +11,7 @@ class MerkleNode:
         self.name = None
         self.prev_version = None
         self.next_version = None
-        self.parent_nodde = None
+        self.parent_node = None
         self.is_dir = None
         self.s3_ref = list()
         self.dir_info = list()
