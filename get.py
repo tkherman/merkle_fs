@@ -2,24 +2,10 @@ from __future__ import print_function
 import boto3
 from botocore.exceptions import ClientError
 
-from MerkleNode import MerkleNode, fetch_node
+from MerkleNode import MerkleNode, fetch_node, get_merkle_node_by_name
 
 dynamodb = boto3.resource('dynamodb', region_name='us-east-1')
 s3 = boto3.resource('s3')
-
-def get_file_node(fs, curr_node, file_path_list):
-    if not curr_node.is_dir:
-        return None
-
-    for sub_f in curr_node.dir_info[1:]:
-        if sub_f[0] == file_path_list[0]:
-            if len(file_path_list) == 1:
-                return fetch_node(fs, sub_f[1])
-            return get_file_node(fs, fetch_node(fs, sub_f[1]), file_path_list[1:])
-
-    # Incorrect path
-    return None
-
 
 def GET(fs, file_path):
     # Fetch root node for fs
@@ -41,7 +27,7 @@ def GET(fs, file_path):
 
     # Locate node corresponding to file
     root_node = fetch_node(fs, root_cksum)
-    file_node = get_file_node(fs, root_node, file_path.lstrip('/').split('/'))
+    file_node = get_merkle_node_by_name(fs, root_node, file_path.lstrip('/').split('/'))
 
     if not file_node:
         return "File {} does not exist".format(file_path)

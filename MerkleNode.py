@@ -51,3 +51,64 @@ def fetch_node(fs, cksum):
 
 
     return mNode
+
+
+# Update the next_version on the existing node
+def update_node_next_version(fs, cksum, next_vers_cksum):
+    fs_table = dynamodb.Table(fs)
+
+    try:
+        response = fs_table.update_item(
+            Key={
+                'cksum': cksum
+            },
+            AttributeUpdates={
+                'next_version': {
+                    'Value': next_vers_cksum,
+                    'Action': 'PUT'
+                }
+            }
+        )
+    except ClientError as e:
+        return False
+
+    return True
+
+
+# Insert the new node into DB
+def insert_node(fs, mNode):
+    fs_table = dynamodb.Table(fs)
+
+    try:
+        response = fs_table.put_item(
+            Item={
+                'cksum': mNode.cksum,
+                'name': mNode.name,
+                'prev_version': mNode.prev_version,
+                'next_version': mNode.next_version,
+                'is_dir': mNode.is_dir,
+                'dir_info': mNode.dir_info,
+                'mod_time': mNode.mod_time,
+                'mod_user': mNode.mod_user
+            }
+        )
+    except ClientError as e:
+        return False
+
+    return True
+
+def get_merkle_node_by_name(fs, curr_node, path_list, node_traversed=None):
+    if node_traversed:
+        node_traversed.append(curr_node)
+
+    if not curr_node.is_dir:
+        return None
+
+    for sub_f in curr_node.dir_info[1:]:
+        if sub_f[0] == path_list[0]:
+            if len(path_list) == 1:
+                return fetch_node(fs, sub_f[1])
+            return get_merkle_node_by_name(fs, fetch_node(fs, sub_f[1]), path_list[1:])
+
+    # Incorrect path
+    return None
