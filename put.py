@@ -72,5 +72,32 @@ def PUT(fs, src_filepath, dest_filepath):
     s3.meta.client.upload_file(src_filepath, s3_bucket, newNode.cksum)
 
     # Bubble up and create new node for all ancestors
+    curr_fname = newNode.name
+    curr_cksum = newNode.cksum
+    for ancestor_node in reversed(node_traversed):
+        new_aNode = MerkleNode()
+        new_aNode.name = ancestor_node.name
+        new_aNode.prev_version = ancestor_node.cksum
+        new_aNode.next_version = None
+        new_aNode.is_dir = ancestor_node.is_dir
+
+        # Generate new dir_info
+        new_dir_info = ancestor_node.dir_info
+        if not len(new_dir_info) == 1: # there are sub files/directories inside
+            for sub_f in new_dir_info:
+                if sub_f[0] == curr_fname:
+                    sub_f[1] = curr_cksum
+                    break
+        new_aNode.dir_info = new_dir_info
+        new_aNode.cksum = calculate_dir_cksum(new_dir_info)
+        new_aNode.mod_time = datetime.datetime.now().strftime('%Y-%m-%dT%H:%M:%S')
+        new_aNode.mod_user = getpass.getuser()
+
+        curr_fname = new_aNode.name
+        curr_cksum = new_aNode.cksum
+
+    # curr_fname and curr_cksum should contain root / cksum,
+    # Update root_pointers table
+    root_pointers_table = dynamodb.Table(
 
 print(PUT("testfstwo", "README.md", "/README.md"))
