@@ -46,8 +46,6 @@ def create_fs(namespace):
         Item={
             'cksum': calculate_dir_cksum(['/']),
             'name': '/',
-            'prev_version': None
-            'next_version': None
             'is_dir': True,
             'dir_info': ['/'],
             'mod_time': datetime.datetime.now().strftime('%Y-%m-%dT%H:%M:%S'),
@@ -62,26 +60,18 @@ def create_fs(namespace):
         response = s3Client.create_bucket(
             Bucket=bucket_name
         )
-        bucket_versioning = s3.BucketVersioning(bucket_name)
-        bucket_versioning.enable()
         print("S3 bucket created successfully")
     except:
         print("Failed to create S3 bucket")
 
     # Add fs to root_pointers table
     print("Updating root_pointers table...")
-    response = dbClient.put_item(
-        TableName='root_pointers',
+    root_pointers_table = dynamodb.Table('root_pointers')
+    response = root_pointers_table.put_item(
         Item={
-            'name': {
-                'S': namespace
-            },
-            'cksum': {
-                'S': calculate_dir_cksum(['/'])
-            },
-            'bucket_name': {
-                'S': bucket_name
-            }
+            'name': namespace,
+            'bucket_name': bucket_name,
+            'root_cksums': [calculate_dir_cksum(['/'])]
         }
     )
     print("{} set up completed".format(namespace))

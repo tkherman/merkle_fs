@@ -10,14 +10,18 @@ class MerkleNode:
     def __init__(self):
         self.cksum = None
         self.name = None
-        self.prev_version = None
-        self.next_version = None
-        self.parent_node = None
         self.is_dir = None
-        self.s3_ref = None
         self.dir_info = None
         self.mod_time = None
         self.mod_user = None
+
+    def print_info(self):
+        print("cksum:       {}".format(self.cksum))
+        print("name:        {}".format(self.name))
+        print("is_dir:      {}".format(self.is_dir))
+        print("dir_info:    {}".format(self.dir_info))
+        print("mod_time:    {}".format(self.mod_time))
+        print("mod_user:    {}".format(self.mod_user))
 
 # Return None if cannot fetch node from table
 def fetch_node(fs, cksum):
@@ -41,39 +45,13 @@ def fetch_node(fs, cksum):
     mNode = MerkleNode()
     mNode.cksum = cksum
     mNode.name = item.get('name', None)
-    mNode.prev_version = item.get('prev_version', None)
-    mNode.next_version = item.get('next_version', None)
-    mNode.parent_node = item.get('parent_node', None)
     mNode.is_dir = item.get('is_dir', None)
-    mNode.s3_ref = item.get('s3_ref', None)
     mNode.dir_info = item.get('dir_info', None)
     mNode.mod_time = item.get('mod_time', None)
     mNode.mod_user = item.get('mod_user', None)
 
 
     return mNode
-
-
-# Update the next_version on the existing node
-def update_node_next_version(fs, cksum, next_vers_cksum):
-    fs_table = dynamodb.Table(fs)
-
-    try:
-        response = fs_table.update_item(
-            Key={
-                'cksum': cksum
-            },
-            AttributeUpdates={
-                'next_version': {
-                    'Value': next_vers_cksum,
-                    'Action': 'PUT'
-                }
-            }
-        )
-    except ClientError as e:
-        return False
-
-    return True
 
 
 # Insert the new node into DB
@@ -85,8 +63,6 @@ def insert_node(fs, mNode):
             Item={
                 'cksum': mNode.cksum,
                 'name': mNode.name,
-                'prev_version': mNode.prev_version,
-                'next_version': mNode.next_version,
                 'is_dir': mNode.is_dir,
                 'dir_info': mNode.dir_info,
                 'mod_time': mNode.mod_time,

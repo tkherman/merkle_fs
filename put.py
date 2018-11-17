@@ -5,7 +5,7 @@ import datetime
 import os.path
 import getpass
 
-from MerkleNode import MerkleNode, fetch_node, get_merkle_node_by_name, insert_node
+from MerkleNode import MerkleNode, fetch_node, get_merkle_node_by_name, insert_node, calculate_dir_cksum
 
 dynamodb = boto3.resource('dynamodb', region_name='us-east-1')
 s3 = boto3.resource('s3')
@@ -37,7 +37,7 @@ def PUT(fs, src_filepath, dest_filepath):
         return "Namespace {} does not exist".format(fs)
 
     s3_bucket = response['Item']['bucket_name']
-    root_cksum = response['Item']['cksum']
+    root_cksum = response['Item']['root_cksums'][-1]
 
     # Get node of directory the file is to be placed in
     node_traversed = []
@@ -48,6 +48,7 @@ def PUT(fs, src_filepath, dest_filepath):
         dir_node = get_merkle_node_by_name(fs, root_node, dest_filepath)
     else:
         dir_node = root_node
+        node_traversed.append(root_node)
 
     # Check if file already exist
     original_fnode = None
@@ -59,9 +60,8 @@ def PUT(fs, src_filepath, dest_filepath):
     newNode = MerkleNode()
     newNode.cksum = calculate_cksum(src_filepath)
     newNode.name = dest_filepath[-1]
-    if original_fnode:
-        newNode.prev_version = original_fnode.cksum
     newNode.is_dir = False
+    newNode.dir_info = None
     newNode.mod_time = datetime.datetime.now().strftime('%Y-%m-%dT%H:%M:%S')
     newNode.mod_user = getpass.getuser()
 
@@ -77,27 +77,44 @@ def PUT(fs, src_filepath, dest_filepath):
     for ancestor_node in reversed(node_traversed):
         new_aNode = MerkleNode()
         new_aNode.name = ancestor_node.name
-        new_aNode.prev_version = ancestor_node.cksum
-        new_aNode.next_version = None
         new_aNode.is_dir = ancestor_node.is_dir
 
         # Generate new dir_info
         new_dir_info = ancestor_node.dir_info
+        existing_node_found = False
         if not len(new_dir_info) == 1: # there are sub files/directories inside
             for sub_f in new_dir_info:
                 if sub_f[0] == curr_fname:
                     sub_f[1] = curr_cksum
+                    existing_node_found = True
                     break
+        if not existing_node_found:
+            new_dir_info.append([curr_fname, curr_cksum])
         new_aNode.dir_info = new_dir_info
         new_aNode.cksum = calculate_dir_cksum(new_dir_info)
         new_aNode.mod_time = datetime.datetime.now().strftime('%Y-%m-%dT%H:%M:%S')
         new_aNode.mod_user = getpass.getuser()
+
+        new_aNode.print_info()
+        insert_node(fs, new_aNode)
 
         curr_fname = new_aNode.name
         curr_cksum = new_aNode.cksum
 
     # curr_fname and curr_cksum should contain root / cksum,
     # Update root_pointers table
-    root_pointers_table = dynamodb.Table(
+    root_pointers_table = dynamodb.Table('root_pointers')
+    response = root_pointers_table.update_item(
+        Key={
+            'name': fs
+        },
+        UpdateExpression='SET root_cksums = list_append(root_cksums, :i)',
+        ExpressionAttributeValues={
+            ':i': [curr_cksum]
+        },
+    )
+
+    return "successful"
+
 
 print(PUT("testfstwo", "README.md", "/README.md"))

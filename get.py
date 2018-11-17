@@ -23,7 +23,7 @@ def GET(fs, file_path):
         return "Namespace {} does not exist".format(fs)
 
     s3_bucket = response['Item']['bucket_name']
-    root_cksum = response['Item']['cksum']
+    root_cksum = response['Item']['root_cksums'][-1]
 
     # Locate node corresponding to file
     root_node = fetch_node(fs, root_cksum)
@@ -36,4 +36,4 @@ def GET(fs, file_path):
     s3.meta.client.download_file(s3_bucket, file_node.cksum, file_path.split('/')[-1])
     return "Downloaded {} to {}".format(file_path, file_path.split('/')[-1])
 
-print (GET('testfs', '/second_dir/file2.txt'))
+print (GET('testfstwo', '/README.md'))
