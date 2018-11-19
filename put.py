@@ -45,7 +45,7 @@ def PUT(fs, src_filepath, dest_filepath):
     dest_filepath = dest_filepath.lstrip('/').split('/')
     if len(dest_filepath) > 1:
         dirpath = dest_filepath[:-1]
-        dir_node = get_merkle_node_by_name(fs, root_node, dest_filepath)
+        dir_node = get_merkle_node_by_name(fs, root_node, dest_filepath, node_traversed)
     else:
         dir_node = root_node
         node_traversed.append(root_node)
