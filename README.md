@@ -20,9 +20,6 @@ Distributed file system that keeps a customizable number of past file versions
     - cksum
 - values
     - name              (string)
-    - prev_version      (string)
-    - next_version      (string)
-    - parent_node       (string)
     - is_dir            (boolean)
     - s3_ref            (list of lists) / if we set cksum to be file name, then
       we don't need this, can keep track of versions I suppose
@@ -45,8 +42,7 @@ Use Python built in hashlib, sha256, and exchange over network as hex string
         - if yes:
             - calculate checksum of new file
             - add file to s3 (use s3 versioning)
-            - create new node for file (while altering the proper pointers)
-            - modify prev_version and next_version of new and old node
+            - create new node for file
             - bubble up and make new nodes for all ancestors
         - if no:
             - ask if user wants to review newest version of file or overwrite directly
@@ -78,19 +74,16 @@ Use Python built in hashlib, sha256, and exchange over network as hex string
         - calculate checksum of new file
         - duplicate the file in s3 and properly name it
         - create new node for file
-        - bubble up and make new nodes for all ancestors (while altering the proper pointers)
+        - bubble up and make new nodes for all ancestors
 - RM
     - traverse through merkle tree to identify the node
     - generate a new checksum for the new parent node
     - create a new node for the parent directory without the target file in it
-        (while altering the proper pointers)
-    - modify prev_version and next_version of new and old node
     - bubble up and make new nodes for all ancestors
 - RMDIR
     - traverse through merkle tree to identify the node
     - generate a new checksum for the new parent node
     - create a new node for the parent directory without any children
-    - modify prev_version and next_version of new and old node
     - bubble up and make new nodes for all ancestors
 - MV
     - traverse through merkle tree to find node of source file and store in memory
@@ -99,5 +92,5 @@ Use Python built in hashlib, sha256, and exchange over network as hex string
     - steps to add file to new directory
         - calculate checksum of new file 
         - create new node for file (even though it's the same file, need to create new node for versioning)
-        - bubble up and make new nodes for all ancestors (while altering the proper pointers)
+        - bubble up and make new nodes for all ancestors
         
