@@ -4,7 +4,7 @@ import boto3
 import hashlib
 from botocore.exceptions import ClientError
 
-dynamodb = boto3.resource('dynamodb', region_name='us-east-1')
+dynamodb = boto3.resource('dynamodb', region_name='us-east-2')
 
 class MerkleNode:
     def __init__(self):
@@ -104,3 +104,24 @@ def get_merkle_node_by_name(fs, curr_node, path_list, node_traversed=None):
 
     # Incorrect path
     return None
+
+def fetch_fs_root_node(fs):
+	root_ptrs_table = dynamodb.Table('root_pointers')
+	success = False
+	try:
+		response = root_ptrs_table.get_item(
+			Key={
+				'name': fs
+			}
+		)
+		success = True
+		if not response.get('Item'):
+			retmsg = "Namespace {} does not exist".format(fs)
+		else:
+			s3_bucket = response['Item']['bucket_name']
+			root_cksum = response['Item']['root_cksums'][-1]
+			retmsg = (s3_bucket, root_cksum)
+	except ClientError as e:
+		retmsg = e.response['Error']['Message']
+
+	return success, retmsg

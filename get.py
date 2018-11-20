@@ -4,7 +4,7 @@ from botocore.exceptions import ClientError
 
 from MerkleNode import MerkleNode, fetch_node, get_merkle_node_by_name
 
-dynamodb = boto3.resource('dynamodb', region_name='us-east-1')
+dynamodb = boto3.resource('dynamodb', region_name='us-east-2')
 s3 = boto3.resource('s3')
 
 def GET(fs, file_path):
@@ -36,4 +36,4 @@ def GET(fs, file_path):
     s3.meta.client.download_file(s3_bucket, file_node.cksum, file_path.split('/')[-1])
     return "Downloaded {} to {}".format(file_path, file_path.split('/')[-1])
 
-print (GET('testfstwo', '/README.md'))
+print (GET('dev', '/goirish.txt'))

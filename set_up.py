@@ -8,9 +8,9 @@ import getpass
 
 from MerkleNode import calculate_dir_cksum
 
-dbClient = boto3.client('dynamodb', region_name='us-east-1')
-dynamodb = boto3.resource('dynamodb', region_name='us-east-1')
-s3Client = boto3.client('s3', region_name='us-east-1')
+dbClient = boto3.client('dynamodb', region_name='us-east-2')
+dynamodb = boto3.resource('dynamodb', region_name='us-east-2')
+s3Client = boto3.client('s3', region_name='us-east-2')
 s3 = boto3.resource('s3')
 
 def create_fs(namespace):

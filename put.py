@@ -7,7 +7,7 @@ import getpass
 
 from MerkleNode import MerkleNode, fetch_node, get_merkle_node_by_name, insert_node, calculate_dir_cksum
 
-dynamodb = boto3.resource('dynamodb', region_name='us-east-1')
+dynamodb = boto3.resource('dynamodb', region_name='us-east-2')
 s3 = boto3.resource('s3')
 
 def calculate_cksum(src_filepath):
@@ -117,4 +117,4 @@ def PUT(fs, src_filepath, dest_filepath):
     return "successful"
 
 
-print(PUT("testfstwo", "README.md", "/README.md"))
+print(PUT("dev", "go_irish.txt", "/goirish.txt"))
