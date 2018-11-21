@@ -42,7 +42,11 @@ def CP(fs, orig_filepath, dest_filepath):
 		print("Error: cannot overwrite root directory")
 		return "unsuccessful"
 	dirpath = new_filepath_list[:-1]
-	nodes_traversed, dir_node = get_merkle_node_by_name(fs, root_node, dirpath, nodes_traversed)
+	if not len(dirpath):
+		dir_node = root_node
+		nodes_traversed.append(root_node)
+	else:
+		nodes_traversed, dir_node = get_merkle_node_by_name(fs, root_node, dirpath, nodes_traversed)
 	if not dir_node:
 		print("Error finding destination file {}".format(dest_filepath))
 		return "unsuccessful"
@@ -68,6 +72,11 @@ def CP(fs, orig_filepath, dest_filepath):
 	
 	# NOTE - do not have to duplicate in S3 because we don't remove anything from S3
 	# TODO - if we add garbage collection this behavior might have to change
+	copy_source = {
+		'Bucket': s3_bucket,
+		'Key': orig_node.cksum
+	}
+	s3.meta.client.copy(copy_source, s3_bucket, newNode.cksum)
 
 	#TODO - figure out issues with bubbling up
 	#CONTINUE HERE ###################
@@ -88,4 +97,4 @@ def CP(fs, orig_filepath, dest_filepath):
 
 	return "successful"
 
-print(CP("dev2", "test_dir1/goirish1.txt", "test_dir1/cp_goirish.txt"))
+print(CP("dev2", "NEWTEST2", "test_dir1/NEWTEST.txt"))

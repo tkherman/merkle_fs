@@ -19,8 +19,9 @@ def LS(fs, dir_path):
 	#find dir/file to be listed
 	root_node = fetch_node(fs, root_cksum)
 	dir_path = dir_path.rstrip().lstrip('/').split('/')
-	if len(dir_path) > 1:
-		dir_node = get_merkle_node_by_name(fs, root_node, dir_path)
+	if len(dir_path) > 0:
+		nt = []
+		_,dir_node = get_merkle_node_by_name(fs, root_node, dir_path, nt)
 	else:
 		dir_node = root_node
 	

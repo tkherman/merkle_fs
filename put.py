@@ -75,4 +75,4 @@ def PUT(fs, src_filepath, dest_filepath):
 	return "successful"
 
 
-print(PUT("dev2", "go_irish.txt", "test_dir1/goirish1.txt"))
+print(PUT("dev2", "go_irish.txt", "NEWTEST2"))
