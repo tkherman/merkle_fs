@@ -102,9 +102,8 @@ def calculate_dir_cksum(dir_info):
 	return hasher.hexdigest()
 
 
-def get_merkle_node_by_name(fs, curr_node, path_list, nodes_traversed=None):
-	if nodes_traversed:
-		nodes_traversed.append(curr_node)
+def get_merkle_node_by_name(fs, curr_node, path_list, nodes_traversed):
+	nodes_traversed.append(curr_node)
 	
 	if not curr_node.is_dir:
 		return None
@@ -112,8 +111,10 @@ def get_merkle_node_by_name(fs, curr_node, path_list, nodes_traversed=None):
 	for sub_f in curr_node.dir_info[1:]:
 		if sub_f[0] == path_list[0]:
 			if len(path_list) == 1:
-				return fetch_node(fs, sub_f[1])
-			return get_merkle_node_by_name(fs, fetch_node(fs, sub_f[1]), path_list[1:])
+				dest_node = fetch_node(fs, sub_f[1])
+				nodes_traversed.append(dest_node)
+				return nodes_traversed, dest_node
+			return get_merkle_node_by_name(fs, fetch_node(fs, sub_f[1]), path_list[1:], nodes_traversed)
 
 	# Incorrect path
 	return None
@@ -168,5 +169,4 @@ def bubble_up(fs, newNode, nodes_traversed):
 
 		curr_fname = new_aNode.name
 		curr_cksum = new_aNode.cksum
-		print('End', curr_fname)
 	return curr_cksum

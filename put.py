@@ -28,7 +28,7 @@ def PUT(fs, src_filepath, dest_filepath):
 	dest_filepath_list = dest_filepath.lstrip('/').split('/')
 	if len(dest_filepath_list) > 1:
 		dirpath = dest_filepath_list[:-1]
-		dir_node = get_merkle_node_by_name(fs, root_node, dirpath, nodes_traversed)
+		nodes_traversed, dir_node = get_merkle_node_by_name(fs, root_node, dirpath, nodes_traversed)
 	else:
 		dir_node = root_node
 		nodes_traversed.append(root_node)
@@ -75,4 +75,4 @@ def PUT(fs, src_filepath, dest_filepath):
 	return "successful"
 
 
-print(PUT("dev", "go_irish.txt", "/goirish2.txt"))
+print(PUT("dev2", "go_irish.txt", "test_dir1/goirish1.txt"))
