@@ -1,6 +1,5 @@
 from __future__ import print_function
 import boto3
-import hashlib
 import datetime
 import os.path
 import getpass
@@ -19,8 +18,8 @@ def PUT(fs, src_filepath, dest_filepath):
 	if success:
 		s3_bucket, root_cksum = msg
 	else:
-		print('Error: {}'.format(msg))
-		return("unsuccessful")
+		print("Error: {}".format(msg))
+		return "unsuccessful"
 
 	# Get node of directory the file is to be placed in
 	nodes_traversed = []
@@ -51,7 +50,8 @@ def PUT(fs, src_filepath, dest_filepath):
 
 	# Insert to DB
 	if not insert_node(fs, newNode):
-		return "Failed to update DB"
+		print("Failed to update DB")
+		return "unsuccessful"
 
 	# Place actual file to S3 with name==cksum
 	s3.meta.client.upload_file(src_filepath, s3_bucket, newNode.cksum)
@@ -75,4 +75,4 @@ def PUT(fs, src_filepath, dest_filepath):
 	return "successful"
 
 
-print(PUT("dev2", "go_irish.txt", "test_dir1/goirish1.txt"))
+print(PUT("dev2", "go_irish.txt", "NEWTEST2"))

@@ -87,6 +87,12 @@ def calculate_cksum(src_filepath, dest_filepath):
 
 	return hasher.hexdigest()
 
+# calculate cksum of copied/moved file
+def calculate_newloc_cksum(orig_cksum, dest_filepath):
+	hasher = hashlib.sha256()
+	hasher.update("{}********{}".format(dest_filepath, orig_cksum))
+	return hasher.hexdigest()
+
 # Take dir_info list and return cksum of directory
 def calculate_dir_cksum(dir_info):
 	hasher = hashlib.sha256()
@@ -107,7 +113,7 @@ def get_merkle_node_by_name(fs, curr_node, path_list, nodes_traversed):
 	
 	if not curr_node.is_dir:
 		return None
-
+	
 	for sub_f in curr_node.dir_info[1:]:
 		if sub_f[0] == path_list[0]:
 			if len(path_list) == 1:
