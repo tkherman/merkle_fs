@@ -30,6 +30,6 @@ def LS(fs, dir_path):
 	return dir_node.name
 
 if __name__=='__main__':
-	result = LS('dev', '/')
+	result = LS('dev2', '/test_dir1')
 	names = [info[0] for info in result[1:]]
 	print(names)

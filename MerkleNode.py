@@ -87,6 +87,12 @@ def calculate_cksum(src_filepath, dest_filepath):
 
 	return hasher.hexdigest()
 
+# calculate cksum of copied/moved file
+def calculate_newloc_cksum(orig_cksum, dest_filepath):
+	hasher = hashlib.sha256()
+	hasher.update("{}********{}".format(dest_filepath, orig_cksum))
+	return hasher.hexdigest()
+
 # Take dir_info list and return cksum of directory
 def calculate_dir_cksum(dir_info):
 	hasher = hashlib.sha256()
