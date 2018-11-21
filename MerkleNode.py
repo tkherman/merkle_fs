@@ -89,9 +89,9 @@ def calculate_dir_cksum(dir_info):
     return hasher.hexdigest()
 
 
-def get_merkle_node_by_name(fs, curr_node, path_list, node_traversed=None):
-    if node_traversed:
-        node_traversed.append(curr_node)
+def get_merkle_node_by_name(fs, curr_node, path_list, nodes_traversed=None):
+    if nodes_traversed:
+        nodes_traversed.append(curr_node)
 
     if not curr_node.is_dir:
         return None
