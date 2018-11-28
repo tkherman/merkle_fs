@@ -3,10 +3,15 @@ import boto3
 import datetime
 import os.path
 import getpass
+import sys
 
 from MerkleNode import MerkleNode, fetch_node, get_merkle_node_by_name, insert_node, calculate_cksum, calculate_dir_cksum, fetch_fs_root_node, bubble_up
 
-dynamodb = boto3.resource('dynamodb', region_name='us-east-2')
+if len(sys.argv) < 2:
+	print('must include region (us-east-X) as first argument')
+	exit(1)
+region = sys.argv[1]
+dynamodb = boto3.resource('dynamodb', region_name='us-east-{}'.format(region))
 s3 = boto3.resource('s3')
 
 def PUT(fs, src_filepath, dest_filepath):
