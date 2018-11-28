@@ -37,13 +37,6 @@ def PUT(fs, src_filepath, dest_filepath):
 		dir_node = root_node
 		nodes_traversed.append(root_node)
 
-	# Check if file already exist -- TODO - unsure of purpose here
-	original_fnode = None
-	for sub_f in dir_node.dir_info[1:]:
-		if sub_f[0] == dest_filepath_list[-1]:
-			original_fnode = fetch_node(fs, sub_f[1])
-	#TODO - do something with this information
-
 	# Create MerkleNode object for new node
 	newNode = MerkleNode()
 	newNode.cksum = calculate_cksum(src_filepath, dest_filepath)
