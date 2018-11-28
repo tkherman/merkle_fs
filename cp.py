@@ -75,16 +75,14 @@ def CP(fs, orig_filepath, dest_filepath):
 		print("Failed to update DB")
 		return "unsuccessful"
 	
-	# NOTE - do not have to duplicate in S3 because we don't remove anything from S3
-	# TODO - if we add garbage collection this behavior might have to change
+	# TODO - figure out a way to not have to duplicate the file in S3
 	copy_source = {
 		'Bucket': s3_bucket,
 		'Key': orig_node.cksum
 	}
 	s3.meta.client.copy(copy_source, s3_bucket, newNode.cksum)
 
-	#TODO - figure out issues with bubbling up
-	#CONTINUE HERE ###################
+
 	# Bubble up and create new node for all ancestors
 	curr_cksum = bubble_up(fs, newNode, nodes_traversed)
 	
