@@ -66,17 +66,4 @@ def RM(fs, path):
 	# Insert to DB
 	curr_cksum = insert_new_node_bubble_up(fs, newNode, nodes_traversed[:-1])
 
-	# curr_fname and curr_cksum should contain root / cksum
-	# Update root_pointers table
-	root_pointers_table = dynamodb.Table('root_pointers')
-	response = root_pointers_table.update_item(
-		Key={
-			'name': fs
-		},
-		UpdateExpression='SET root_cksums = list_append(root_cksums, :i)',
-		ExpressionAttributeValues={
-			':i': [curr_cksum]
-		},
-	)
-
-
+	update_root_pointers_table(fs, curr_cksum)

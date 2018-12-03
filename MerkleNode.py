@@ -209,3 +209,15 @@ def bubble_up(fs, newNode, nodes_traversed):
 		curr_fname = new_aNode.name
 		curr_cksum = new_aNode.cksum
 	return curr_cksum
+
+def update_root_pointers_table(fs, cksum):
+	root_pointers_table = dynamodb.Table('root_pointers')
+	response = root_pointers_table.update_item(
+		Key={
+			'name':fs
+		},
+		UpdateExpression='SET root_cksums = list_append(root_cksums, :i)',
+		ExpressionAttributeValues={
+			':i': [cksum]
+		},
+	)

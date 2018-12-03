@@ -5,7 +5,7 @@ import datetime
 import os.path
 import getpass
 
-from MerkleNode import MerkleNode, fetch_node, get_merkle_node_by_name, insert_node, calculate_cksum, calculate_dir_cksum, fetch_fs_root_node, bubble_up
+from MerkleNode import *
 
 dynamodb = boto3.resource('dynamodb', region_name='us-east-2')
 s3 = boto3.resource('s3')
@@ -43,26 +43,11 @@ def PUT(fs, src_filepath, dest_filepath):
 	newNode.mod_user = getpass.getuser()
 
 	# Insert to DB
-	if not insert_node(fs, newNode):
-		return "Failed to update DB"
+	curr_cksum = insert_new_node_bubble_up(fs, newNode, nodes_traversed)
 
 	# Place actual file to S3 with name==cksum
 	s3.meta.client.upload_file(src_filepath, s3_bucket, newNode.cksum)
 
-	# Bubble up and create new node for all ancestors
-	curr_cksum = bubble_up(fs, newNode, nodes_traversed)
-
-	# curr_fname and curr_cksum should contain root / cksum
-	# Update root_pointers table
-	root_pointers_table = dynamodb.Table('root_pointers')
-	response = root_pointers_table.update_item(
-		Key={
-			'name': fs
-		},
-		UpdateExpression='SET root_cksums = list_append(root_cksums, :i)',
-		ExpressionAttributeValues={
-			':i': [curr_cksum]
-		},
-	)
+	update_root_pointers_table(fs, curr_cksum)
 
 	return "successful"
