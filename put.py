@@ -1,17 +1,13 @@
 from __future__ import print_function
 import boto3
+import hashlib
 import datetime
 import os.path
 import getpass
-import sys
 
 from MerkleNode import MerkleNode, fetch_node, get_merkle_node_by_name, insert_node, calculate_cksum, calculate_dir_cksum, fetch_fs_root_node, bubble_up
 
-if len(sys.argv) < 2:
-	print('must include region (us-east-X) as first argument')
-	exit(1)
-region = sys.argv[1]
-dynamodb = boto3.resource('dynamodb', region_name='us-east-{}'.format(region))
+dynamodb = boto3.resource('dynamodb', region_name='us-east-2')
 s3 = boto3.resource('s3')
 
 def PUT(fs, src_filepath, dest_filepath):
@@ -23,8 +19,8 @@ def PUT(fs, src_filepath, dest_filepath):
 	if success:
 		s3_bucket, root_cksum = msg
 	else:
-		print("Error: {}".format(msg))
-		return "unsuccessful"
+		print('Error: {}'.format(msg))
+		return("unsuccessful")
 
 	# Get node of directory the file is to be placed in
 	nodes_traversed = []
@@ -48,8 +44,7 @@ def PUT(fs, src_filepath, dest_filepath):
 
 	# Insert to DB
 	if not insert_node(fs, newNode):
-		print("Failed to update DB")
-		return "unsuccessful"
+		return "Failed to update DB"
 
 	# Place actual file to S3 with name==cksum
 	s3.meta.client.upload_file(src_filepath, s3_bucket, newNode.cksum)
@@ -57,7 +52,7 @@ def PUT(fs, src_filepath, dest_filepath):
 	# Bubble up and create new node for all ancestors
 	curr_cksum = bubble_up(fs, newNode, nodes_traversed)
 
-	# curr_fname and curr_cksum should contain root / cksum, -- TODO ???
+	# curr_fname and curr_cksum should contain root / cksum
 	# Update root_pointers table
 	root_pointers_table = dynamodb.Table('root_pointers')
 	response = root_pointers_table.update_item(
@@ -71,6 +66,3 @@ def PUT(fs, src_filepath, dest_filepath):
 	)
 
 	return "successful"
-
-
-print(PUT("dev2", "go_irish.txt", "NEWTEST2"))
