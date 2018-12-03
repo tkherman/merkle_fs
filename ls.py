@@ -7,6 +7,16 @@ from MerkleNode import MerkleNode, fetch_node, get_merkle_node_by_name, fetch_fs
 dynamodb = boto3.resource('dynamodb', region_name='us-east-2')
 s3 = boto3.resource('s3')
 
+def format_node_info(node):
+	is_dir = None
+	if node.is_dir:
+		is_dir = "d"
+	else:
+		is_dir = "-"
+
+	node_info = "{} {:<12} {:<16} {:<20}".format(is_dir, node.mod_user, node.mod_time.replace('T', ' '), node.name)
+	return node_info
+
 def LS(fs, dir_path):
 	# fetch fs root node
 	success, msg = fetch_fs_root_node(fs)
@@ -15,21 +25,25 @@ def LS(fs, dir_path):
 	else:
 		print('Error: {}'.format(msg))
 		exit(1)
-	
+
 	#find dir/file to be listed
 	root_node = fetch_node(fs, root_cksum)
-	dir_path = dir_path.rstrip().lstrip('/').split('/')
-	if len(dir_path) > 1:
-		dir_node = get_merkle_node_by_name(fs, root_node, dir_path)
+	if dir_path == "/":
+		node = root_node
 	else:
-		dir_node = root_node
-	
-	#return files in directory
-	if dir_node.is_dir:
-		return dir_node.dir_info
-	return dir_node.name
+		dir_path_list = dir_path.rstrip().lstrip('/').split('/')
+		_,node = get_merkle_node_by_name(fs, root_node, dir_path_list, list())
 
-if __name__=='__main__':
-	result = LS('dev', '/')
-	names = [info[0] for info in result[1:]]
-	print(names)
+	if node == None:
+		print("{} doesn't exist".format(dir_path))
+
+	# If the node is a file, list the file
+	if not node.is_dir:
+		print(format_node_info(node))
+		return
+	# else, list info on a files/subdirectories within the directory
+	else:
+		dir_info = node.dir_info[1:] # first element is just the path name to directory
+		for info_pair in dir_info:
+			child_node = fetch_node(fs, info_pair[1])
+			print(format_node_info(child_node))

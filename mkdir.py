@@ -5,20 +5,21 @@ import datetime
 import getpass
 
 from MerkleNode import MerkleNode, fetch_node, get_merkle_node_by_name, insert_node, calculate_dir_cksum, fetch_fs_root_node, bubble_up
-from utilities import *
 
 dynamodb = boto3.resource('dynamodb', region_name='us-east-2')
 s3 = boto3.resource('s3')
 
 def MKDIR(fs, new_dirpath):
+	print(fs)
 	# Fetch root node for fs
 	success, msg = fetch_fs_root_node(fs)
+	print(msg)
 	if success:
 		s3_bucket, root_cksum = msg
 	else:
 		print("Error: {}".format(msg))
 		return "unsuccessful"
-	
+
 	# Get node of directory the new directory is to be placed in
 	nodes_traversed = []
 	root_node = fetch_node(fs, root_cksum)
@@ -29,13 +30,13 @@ def MKDIR(fs, new_dirpath):
 	else:
 		dir_node = root_node
 		nodes_traversed.append(root_node)
-	
+
 	# Check if directory already exists
 	for sub_f in dir_node.dir_info[1:]:
 		if sub_f[0] == dirpath_list[-1]:
 			print("Error: directory already exists")
 			return("unsuccessful")
-	
+
 	# Create MerkleNode object for new directory node
 	newNode = MerkleNode()
 	newNode.cksum = calculate_dir_cksum(dirpath_list)
@@ -48,7 +49,7 @@ def MKDIR(fs, new_dirpath):
 	# Insert to DB
 	if not insert_node(fs, newNode):
 		return "Failed to update DB"
-	
+
 	# Bubble up and create new nodes for all ancestors
 	curr_cksum = bubble_up(fs, newNode, nodes_traversed)
 
@@ -65,5 +66,3 @@ def MKDIR(fs, new_dirpath):
 	)
 
 	return "successful"
-
-print(MKDIR("dev2", "/test_dir1"))

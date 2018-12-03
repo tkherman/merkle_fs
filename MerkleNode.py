@@ -104,9 +104,9 @@ def calculate_dir_cksum(dir_info):
 
 def get_merkle_node_by_name(fs, curr_node, path_list, nodes_traversed):
 	nodes_traversed.append(curr_node)
-	
+
 	if not curr_node.is_dir:
-		return None
+		return None, None
 
 	for sub_f in curr_node.dir_info[1:]:
 		if sub_f[0] == path_list[0]:
@@ -117,7 +117,7 @@ def get_merkle_node_by_name(fs, curr_node, path_list, nodes_traversed):
 			return get_merkle_node_by_name(fs, fetch_node(fs, sub_f[1]), path_list[1:], nodes_traversed)
 
 	# Incorrect path
-	return None
+	return None, None
 
 def fetch_fs_root_node(fs):
 	root_ptrs_table = dynamodb.Table('root_pointers')
@@ -139,7 +139,7 @@ def fetch_fs_root_node(fs):
 		retmsg = e.response['Error']['Message']
 
 	return success, retmsg
-	
+
 # Bubble up and create new node for all ancestors
 def bubble_up(fs, newNode, nodes_traversed):
 	curr_fname = newNode.name
