@@ -6,11 +6,12 @@ import copy as _cp
 import sys
 
 from MerkleNode import *
+from rm import RM
 
 dynamodb = boto3.resource('dynamodb', region_name='us-east-2')
 s3 = boto3.resource('s3')
 
-def CP(fs, orig_filepath, dest_filepath):
+def MV(fs, orig_filepath, dest_filepath):
 	if orig_filepath == dest_filepath:
 		print("CP: {} and {} are identical (not copied)".format(orig_filepath, dest_filepath))
 		return "unsuccessful"
@@ -35,6 +36,12 @@ def CP(fs, orig_filepath, dest_filepath):
 	#				original file as well because if copying to the same directory this
 	#				would save queries to DynamoDB
 
+	# Preform RM on the original file
+	success = RM(fs, orig_filepath)
+	if success == "unsuccessful":
+		print("Issue removing original file")
+		return "unsuccessful"
+
 	# Get node of new directory that the file is to be placed in
 	new_filepath_list = dest_filepath.strip().lstrip('/').split('/')
 	nodes_traversed = []
@@ -48,14 +55,14 @@ def CP(fs, orig_filepath, dest_filepath):
 	else:
 		nodes_traversed, dir_node = get_merkle_node_by_name(fs, root_node, dirpath, nodes_traversed)
 	if not dir_node:
-		print("Error finding destination file {}".format(dest_filepath))
+		print("Error finding destination directory {}".format(dest_filepath))
 		return "unsuccessful"
 
 	# Check if the file already exists
 	for sub_f in dir_node.dir_info[1:]:
 		if sub_f[0] == new_filepath_list[-1]:
 			print(sub_f[0], new_filepath_list[-1])
-			print("CP: cannot overwrite files -- please RM before proceeding if this is an intended operation")
+			print("MV: cannot overwrite files -- please RM before proceeding if this is an intended operation")
 			return "unsuccessful"
 
 	# Create MerkleNode for copied node
@@ -92,5 +99,7 @@ def CP(fs, orig_filepath, dest_filepath):
 			':i': [curr_cksum]
 		},
 	)
+
+	#TODO - remove intermediate node
 
 	return "successful"

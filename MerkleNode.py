@@ -107,6 +107,13 @@ def calculate_dir_cksum(dir_info):
 
 	return hasher.hexdigest()
 
+# Calculate cksum for new directory
+def calculate_newdir_cksum(new_dirpath, create_time):
+	hasher = hashlib.sha256()
+	hasher.update(new_dirpath)
+	hasher.update(create_time)
+	return hasher.hexdigest()
+
 
 def get_merkle_node_by_name(fs, curr_node, path_list, nodes_traversed):
 	nodes_traversed.append(curr_node)

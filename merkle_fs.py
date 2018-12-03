@@ -7,6 +7,7 @@ from ls import LS
 from get import GET
 from cp import CP
 from rm import RM
+from mv import MV
 
 def usage():
 	usg_msg = """
@@ -19,6 +20,7 @@ def usage():
 		MKDIR   fs path
 		LS      fs path
 		RM      fs path
+		MV      fs src_path dest_path
     """
 	print(usg_msg)
 	exit(1)
@@ -39,6 +41,8 @@ def parseArgs():
 		CP(sys.argv[2], sys.argv[3], sys.argv[4])
 	elif sys.argv[1] == 'RM' and len(sys.argv) == 4:
 		RM(sys.argv[2], sys.argv[3])
+	elif sys.argv[1] == 'MV' and len(sys.argv) == 5:
+		MV(sys.argv[2], sys.argv[3], sys.argv[4])
 	else:
 		usage()
 
