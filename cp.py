@@ -99,5 +99,3 @@ def CP(fs, orig_filepath, dest_filepath):
 	)
 
 	return "successful"
-
-print(CP("dev2", "NEWTEST2", "test_dir1/NEWTEST.txt"))
