@@ -10,10 +10,8 @@ dynamodb = boto3.resource('dynamodb', region_name='us-east-2')
 s3 = boto3.resource('s3')
 
 def MKDIR(fs, new_dirpath):
-	print(fs)
 	# Fetch root node for fs
 	success, msg = fetch_fs_root_node(fs)
-	print(msg)
 	if success:
 		s3_bucket, root_cksum = msg
 	else:

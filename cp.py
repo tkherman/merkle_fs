@@ -7,11 +7,8 @@ import sys
 
 from MerkleNode import *
 
-if len(sys.argv) < 2:
-	print('must include region (us-east-X) as first argument')
-	exit(1)
 region = sys.argv[1]
-dynamodb = boto3.resource('dynamodb', region_name='us-east-{}'.format(region))
+dynamodb = boto3.resource('dynamodb', region_name='us-east-2')
 s3 = boto3.resource('s3')
 
 def CP(fs, orig_filepath, dest_filepath):
@@ -30,20 +27,19 @@ def CP(fs, orig_filepath, dest_filepath):
 
 	# Get node of original file
 	orig_filepath_list = orig_filepath.strip().lstrip('/').split('/')
-	if not len(orig_filepath_list):
+	if len(orig_filepath_list) == 0:
 		orig_node = root_node
 	else:
-		ot = []
-		_, orig_node = get_merkle_node_by_name(fs, root_node, orig_filepath_list, ot)
+		_, orig_node = get_merkle_node_by_name(fs, root_node, orig_filepath_list, list())
 
 	#TODO - note:	potential optimization would be to store the directory node for the
 	#				original file as well because if copying to the same directory this
 	#				would save queries to DynamoDB
 
-	# Get node of new directory file is to be placed in
+	# Get node of new directory that the file is to be placed in
 	new_filepath_list = dest_filepath.strip().lstrip('/').split('/')
 	nodes_traversed = []
-	if not len(new_filepath_list):
+	if len(new_filepath_list) == 0:
 		print("Error: cannot overwrite root directory")
 		return "unsuccessful"
 	dirpath = new_filepath_list[:-1]
@@ -62,8 +58,8 @@ def CP(fs, orig_filepath, dest_filepath):
 			print(sub_f[0], new_filepath_list[-1])
 			print("CP: cannot overwrite files -- please RM before proceeding if this is an intended operation")
 			return "unsuccessful"
-	
-	# Create MerkleNode for copied node 
+
+	# Create MerkleNode for copied node
 	newNode = _cp.deepcopy(orig_node)
 	newNode.cksum = calculate_newloc_cksum(newNode.cksum, dest_filepath)
 	newNode.mod_time = datetime.datetime.now().strftime('%Y-%m-%dT%H:%M:%S')
@@ -74,7 +70,7 @@ def CP(fs, orig_filepath, dest_filepath):
 	if not insert_node(fs, newNode):
 		print("Failed to update DB")
 		return "unsuccessful"
-	
+
 	# TODO - figure out a way to not have to duplicate the file in S3
 	copy_source = {
 		'Bucket': s3_bucket,
@@ -85,7 +81,7 @@ def CP(fs, orig_filepath, dest_filepath):
 
 	# Bubble up and create new node for all ancestors
 	curr_cksum = bubble_up(fs, newNode, nodes_traversed)
-	
+
 	# Update root_pointers table
 	root_pointers_table = dynamodb.Table('root_pointers')
 	response = root_pointers_table.update_item(

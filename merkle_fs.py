@@ -6,6 +6,7 @@ from mkdir import MKDIR
 from ls import LS
 from get import GET
 from cp import CP
+from rm import RM
 
 def usage():
 	usg_msg = """
@@ -14,9 +15,10 @@ def usage():
 	The Command can be one of the following:
 		PUT     fs src_path dest_path
 		GET     fs src_path dest_path
+		CP      fs src_path dest_path
 		MKDIR   fs path
 		LS      fs path
-		CP	fs src_path dest_path
+		RM      fs path
     """
 	print(usg_msg)
 	exit(1)
@@ -35,6 +37,8 @@ def parseArgs():
 		GET(sys.argv[2], sys.argv[3], sys.argv[4])
 	elif sys.argv[1] == 'CP' and len(sys.argv) == 5:
 		CP(sys.argv[2], sys.argv[3], sys.argv[4])
+	elif sys.argv[1] == 'RM' and len(sys.argv) == 4:
+		RM(sys.argv[2], sys.argv[3])
 	else:
 		usage()
 

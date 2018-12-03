@@ -1,4 +1,5 @@
 from __future__ import print_function
+from botocore.exceptions import ClientError
 import sys
 import boto3
 import botocore
@@ -14,6 +15,22 @@ s3Client = boto3.client('s3', region_name='us-east-2')
 s3 = boto3.resource('s3')
 
 def create_fs(namespace):
+    # Create S3 bucket
+    bucket_name = 'git-storage-{}-bucket'.format(namespace.lower())
+    print("Creating S3 bucket: {} ...".format(bucket_name))
+    try:
+        response = s3Client.create_bucket(
+            Bucket=bucket_name,
+            CreateBucketConfiguration={
+                'LocationConstraint': 'us-east-2'
+            }
+        )
+        print("S3 bucket created successfully")
+    except ClientError as e:
+        print("Failed to create S3 bucket")
+        print(e)
+        return
+
     # Create a table for metadata merkle tree
     print("Creating table...")
     table = dbClient.create_table(
@@ -53,16 +70,6 @@ def create_fs(namespace):
         }
     )
 
-    # Create S3 bucket
-    bucket_name = 'git-storage-{}-bucket'.format(namespace.lower())
-    print("Creating S3 bucket: {} ...".format(bucket_name))
-    try:
-        response = s3Client.create_bucket(
-            Bucket=bucket_name
-        )
-        print("S3 bucket created successfully")
-    except:
-        print("Failed to create S3 bucket")
 
     # Add fs to root_pointers table
     print("Updating root_pointers table...")

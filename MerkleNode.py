@@ -87,6 +87,12 @@ def calculate_cksum(src_filepath, dest_filepath):
 
 	return hasher.hexdigest()
 
+# calculate cksum of copied/moved file
+def calculate_newloc_cksum(orig_cksum, dest_filepath):
+	hasher = hashlib.sha256()
+	hasher.update("{}********{}".format(dest_filepath, orig_cksum))
+	return hasher.hexdigest()
+
 # Take dir_info list and return cksum of directory
 def calculate_dir_cksum(dir_info):
 	hasher = hashlib.sha256()
@@ -139,6 +145,39 @@ def fetch_fs_root_node(fs):
 		retmsg = e.response['Error']['Message']
 
 	return success, retmsg
+
+# Bubble up and create new node for all ancestors
+def insert_new_node_bubble_up(fs, newNode, nodes_traversed):
+	insert_node(fs, newNode)
+
+	curr_fname = newNode.name
+	curr_cksum = newNode.cksum
+	for ancestor_node in reversed(nodes_traversed):
+		new_aNode = MerkleNode()
+		new_aNode.name = ancestor_node.name
+		new_aNode.is_dir = ancestor_node.is_dir
+
+		# Generate new dir_info
+		new_dir_info = ancestor_node.dir_info
+		existing_node_found = False
+		if not len(new_dir_info) == 1: # there are sub files/directories inside
+			for sub_f in new_dir_info[1:]:
+				if sub_f[0] == curr_fname:
+					sub_f[1] = curr_cksum
+					existing_node_found = True
+					break
+		if not existing_node_found:
+			new_dir_info.append([curr_fname, curr_cksum])
+		new_aNode.dir_info = new_dir_info
+		new_aNode.cksum = calculate_dir_cksum(new_dir_info)
+		new_aNode.mod_time = datetime.datetime.now().strftime('%Y-%m-%dT%H:%M:%S')
+		new_aNode.mod_user = getpass.getuser()
+
+		insert_node(fs, new_aNode)
+
+		curr_fname = new_aNode.name
+		curr_cksum = new_aNode.cksum
+	return curr_cksum
 
 # Bubble up and create new node for all ancestors
 def bubble_up(fs, newNode, nodes_traversed):
