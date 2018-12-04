@@ -31,7 +31,8 @@ class MerkleNode:
 def fetch_node(fs, cksum):
 	# Open the cache_file
 	entries_cache_filepath = tempfile.gettempdir() + "/merkle_fs_cache_entries"
-	entries_cache_file = open(entries_cache_filepath, "a+")
+	#entries_cache_filepath = "/tmp/merkle_fs_cache_entries"
+	entries_cache_file = open(entries_cache_filepath, "r")
 
 	# Check if the entry exist in the cache file
 	entry_string = entries_cache_file.readline()
@@ -77,6 +78,8 @@ def fetch_node(fs, cksum):
 	mNode.mod_user = item.get('mod_user', None)
 
 	# Append entry to entries_cache_file
+	entries_cache_file.close()
+	entries_cache_file = open(entries_cache_filepath, "a+")
 	is_dir = "True" if mNode.is_dir else "False"
 	new_entry_string = "{}^{}^{}^{}^{}^{}\n".format(mNode.cksum, mNode.name, is_dir,
 												json.dumps(mNode.dir_info), mNode.mod_time,

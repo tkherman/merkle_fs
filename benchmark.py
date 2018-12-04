@@ -12,12 +12,12 @@ from rm import RM
 from mv import MV
 
 fs = 'benchmark'
-m_logfile = '.benchmark_results/m_benchmark_log.csv'
-p_logfile = '.benchmark_results/p_benchmark_log.csv'
-g_logfile = '.benchmark_results/g_benchmark_log.csv'
+m_logfile = './benchmark_results/m_benchmark_log.csv'
+p_logfile = './benchmark_results/p_benchmark_log.csv'
+g_logfile = './benchmark_results/g_benchmark_log.csv'
 file_to_put = 'LICENSE' 
 get_path = '/tmp/lcns'
-dirname = '/test'
+dirname = '/test2'
 test_incs = 5
 max_depth = 51
 
@@ -63,3 +63,7 @@ for k in range(max_depth):
 
 	print(k)
 	curr_dirpath += dirname
+
+mf.close()
+pf.close()
+gf.close()
