@@ -37,10 +37,11 @@ def MV(fs, orig_filepath, dest_filepath):
 	#				would save queries to DynamoDB
 
 	# Preform RM on the original file
-	success = RM(fs, orig_filepath)
+	success, new_root_cksum = RM(fs, orig_filepath, fromMV=True)
 	if success == "unsuccessful":
 		print("Issue removing original file")
 		return "unsuccessful"
+	new_root = fetch_node(fs, new_root_cksum)
 
 	# Get node of new directory that the file is to be placed in
 	new_filepath_list = dest_filepath.strip().lstrip('/').split('/')
@@ -50,10 +51,10 @@ def MV(fs, orig_filepath, dest_filepath):
 		return "unsuccessful"
 	dirpath = new_filepath_list[:-1]
 	if not len(dirpath):
-		dir_node = root_node
-		nodes_traversed.append(root_node)
+		dir_node = new_root 
+		nodes_traversed.append(new_root)
 	else:
-		nodes_traversed, dir_node = get_merkle_node_by_name(fs, root_node, dirpath, nodes_traversed)
+		nodes_traversed, dir_node = get_merkle_node_by_name(fs, new_root, dirpath, nodes_traversed)
 	if not dir_node:
 		print("Error finding destination directory {}".format(dest_filepath))
 		return "unsuccessful"
