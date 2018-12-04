@@ -20,7 +20,7 @@ def PUT(fs, src_filepath, dest_filepath):
 		s3_bucket, root_cksum = msg
 	else:
 		print('Error: {}'.format(msg))
-		return("unsuccessful")
+		return "Cannot get root node for fs {}".format(fs)
 
 	# Get node of directory the file is to be placed in
 	nodes_traversed = []
@@ -50,4 +50,4 @@ def PUT(fs, src_filepath, dest_filepath):
 
 	update_root_pointers_table(fs, curr_cksum)
 
-	return "successful"
+	return curr_cksum

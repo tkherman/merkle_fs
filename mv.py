@@ -13,16 +13,14 @@ s3 = boto3.resource('s3')
 
 def MV(fs, orig_filepath, dest_filepath):
 	if orig_filepath == dest_filepath:
-		print("CP: {} and {} are identical (not copied)".format(orig_filepath, dest_filepath))
-		return "unsuccessful"
+		return "CP: {} and {} are identical (not copied)".format(orig_filepath, dest_filepath)
 
 	# Fetch root node for fs
 	success, msg = fetch_fs_root_node(fs)
 	if success:
 		s3_bucket, root_cksum = msg
 	else:
-		print("Error: {}".format(msg))
-		return "unsuccessful"
+		return "Error: {}".format(msg)
 	root_node = fetch_node(fs, root_cksum)
 
 	# Get node of original file
@@ -37,34 +35,29 @@ def MV(fs, orig_filepath, dest_filepath):
 	#				would save queries to DynamoDB
 
 	# Preform RM on the original file
-	success, new_root_cksum = RM(fs, orig_filepath, fromMV=True)
+	new_root_cksum = RM(fs, orig_filepath, fromMV=True)
 	if success == "unsuccessful":
-		print("Issue removing original file")
-		return "unsuccessful"
+		return "Issue removing original file"
 	new_root = fetch_node(fs, new_root_cksum)
 
 	# Get node of new directory that the file is to be placed in
 	new_filepath_list = dest_filepath.strip().lstrip('/').split('/')
 	nodes_traversed = []
 	if len(new_filepath_list) == 0:
-		print("Error: cannot overwrite root directory")
-		return "unsuccessful"
+		return "Error: cannot overwrite root directory"
 	dirpath = new_filepath_list[:-1]
 	if not len(dirpath):
-		dir_node = new_root 
+		dir_node = new_root
 		nodes_traversed.append(new_root)
 	else:
 		nodes_traversed, dir_node = get_merkle_node_by_name(fs, new_root, dirpath, nodes_traversed)
 	if not dir_node:
-		print("Error finding destination directory {}".format(dest_filepath))
-		return "unsuccessful"
+		return "Error finding destination directory {}".format(dest_filepath)
 
 	# Check if the file already exists
 	for sub_f in dir_node.dir_info[1:]:
 		if sub_f[0] == new_filepath_list[-1]:
-			print(sub_f[0], new_filepath_list[-1])
-			print("MV: cannot overwrite files -- please RM before proceeding if this is an intended operation")
-			return "unsuccessful"
+			return "MV: cannot overwrite files -- please RM before proceeding if this is an intended operation"
 
 	# Create MerkleNode for copied node
 	newNode = _cp.deepcopy(orig_node)
@@ -73,10 +66,6 @@ def MV(fs, orig_filepath, dest_filepath):
 	newNode.mod_user = getpass.getuser()
 	newNode.name = new_filepath_list[-1]
 
-	# Insert into DB
-	if not insert_node(fs, newNode):
-		print("Failed to update DB")
-		return "unsuccessful"
 
 	# TODO - figure out a way to not have to duplicate the file in S3
 	copy_source = {
@@ -85,22 +74,11 @@ def MV(fs, orig_filepath, dest_filepath):
 	}
 	s3.meta.client.copy(copy_source, s3_bucket, newNode.cksum)
 
-
 	# Bubble up and create new node for all ancestors
-	curr_cksum = bubble_up(fs, newNode, nodes_traversed)
+	curr_cksum = insert_new_node_bubble_up(fs, newNode, nodes_traversed)
 
-	# Update root_pointers table
-	root_pointers_table = dynamodb.Table('root_pointers')
-	response = root_pointers_table.update_item(
-		Key={
-			'name': fs
-		},
-		UpdateExpression='SET root_cksums = list_append(root_cksums, :i)',
-		ExpressionAttributeValues={
-			':i': [curr_cksum]
-		},
-	)
+	update_root_pointers_table(fs, curr_cksum)
 
 	#TODO - remove intermediate node
 
-	return "successful"
+	return curr_cksum

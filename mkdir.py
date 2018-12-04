@@ -47,4 +47,4 @@ def MKDIR(fs, new_dirpath):
 	curr_cksum = insert_new_node_bubble_up(fs, newNode, nodes_traversed)
 	update_root_pointers_table(fs, curr_cksum)
 
-	return "successful"
+	return curr_cksum
