@@ -29,8 +29,6 @@ def MKDIR(fs, new_dirpath):
 		dir_node = root_node
 		nodes_traversed.append(root_node)
 
-	print(nodes_traversed)
-
 	# Check if directory already exists
 	for sub_f in dir_node.dir_info[1:]:
 		if sub_f[0] == dirpath_list[-1]:
@@ -39,13 +37,12 @@ def MKDIR(fs, new_dirpath):
 
 	# Create MerkleNode object for new directory node
 	newNode = MerkleNode()
-	newNode.cksum = calculate_dir_cksum(dirpath_list)
 	newNode.name = dirpath_list[-1]
 	newNode.is_dir = True
 	newNode.dir_info = [new_dirpath]
 	newNode.mod_time = datetime.datetime.now().strftime('%Y-%m-%dT%H:%M:%S')
+	newNode.cksum = calculate_newdir_cksum(new_dirpath, newNode.mod_time)
 	newNode.mod_user = getpass.getuser()
-
 
 	curr_cksum = insert_new_node_bubble_up(fs, newNode, nodes_traversed)
 	update_root_pointers_table(fs, curr_cksum)

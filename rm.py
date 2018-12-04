@@ -6,10 +6,10 @@ s3 = boto3.resource('s3')
 
 from MerkleNode import *
 
-def RM(fs, path):
+def RM(fs, path, fromMV=False):
 	if path == "/":
 		print("Cannot remove root directory")
-		return "unsuccessful"
+		return "unsuccessful", None
 
 	# Fetch root node for fs
 	success, msg = fetch_fs_root_node(fs)
@@ -17,7 +17,7 @@ def RM(fs, path):
 		s3_bucket, root_cksum = msg
 	else:
 		print('Error: {}'.format(msg))
-		return "unsuccessful"
+		return "unsuccessful", None
 
 	# Get node of directory the file/subdirectory is in
 	nodes_traversed = []
@@ -32,7 +32,7 @@ def RM(fs, path):
 
 	if not dir_node:
 		print("Error: {} cannot be found".format(path))
-		return "unsuccessful"
+		return "unsuccessful", None
 
 
 	# Create new MerkleNode for the dir_node
@@ -54,7 +54,7 @@ def RM(fs, path):
 
 	if not index_to_remove: # the file couldn't be found so no action further
 		print("Error: {} cannot be found".format(path))
-		return "unsuccessful"
+		return "unsuccessful", None
 
 	del dir_info[index_to_remove]
 
@@ -66,4 +66,7 @@ def RM(fs, path):
 	# Insert to DB
 	curr_cksum = insert_new_node_bubble_up(fs, newNode, nodes_traversed[:-1])
 
-	update_root_pointers_table(fs, curr_cksum)
+	if not fromMV:
+		update_root_pointers_table(fs, curr_cksum)
+	return "successful", curr_cksum
+	
