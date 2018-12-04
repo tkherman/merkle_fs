@@ -1,9 +1,11 @@
 from __future__ import print_function
 import sys
 import boto3
+import json
 import getpass
 import hashlib
 import datetime
+import tempfile
 from botocore.exceptions import ClientError
 
 dynamodb = boto3.resource('dynamodb', region_name='us-east-2')
@@ -27,6 +29,28 @@ class MerkleNode:
 
 # Return None if cannot fetch node from table
 def fetch_node(fs, cksum):
+	# Open the cache_file
+	entries_cache_filepath = tempfile.gettempdir() + "/merkle_fs_cache_entries"
+	entries_cache_file = open(entries_cache_filepath, "a+")
+
+	# Check if the entry exist in the cache file
+	entry_string = entries_cache_file.readline()
+	while entry_string:
+		entry = entry_string.rstrip().split("^")
+		if entry[0] == cksum:
+			mNode = MerkleNode()
+			mNode.cksum = entry[0]
+			mNode.name = entry[1]
+			mNode.is_dir = True if entry[2] == "True" else False
+			mNode.dir_info = json.loads(entry[3])
+			mNode.mod_time = entry[4]
+			mNode.mod_user = entry[5]
+
+			return mNode
+
+		entry_string = entries_cache_file.readline()
+
+
 	fs_table = dynamodb.Table(fs)
 
 	try:
@@ -52,6 +76,12 @@ def fetch_node(fs, cksum):
 	mNode.mod_time = item.get('mod_time', None)
 	mNode.mod_user = item.get('mod_user', None)
 
+	# Append entry to entries_cache_file
+	is_dir = "True" if mNode.is_dir else "False"
+	new_entry_string = "{}^{}^{}^{}^{}^{}\n".format(mNode.cksum, mNode.name, is_dir,
+												json.dumps(mNode.dir_info), mNode.mod_time,
+												mNode.mod_user)
+	entries_cache_file.write(new_entry_string)
 
 	return mNode
 
