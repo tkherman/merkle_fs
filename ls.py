@@ -17,14 +17,29 @@ def format_node_info(node):
 	node_info = "{} {:<12} {:<16} {:<20}".format(is_dir, node.mod_user, node.mod_time.replace('T', ' '), node.name)
 	return node_info
 
-def LS(fs, dir_path):
-	# fetch fs root node
-	success, msg = fetch_fs_root_node(fs)
-	if success:
-		s3_bucket, root_cksum = msg
+def LS(fs, dir_path, version=None):
+	# Fetch root node for fs
+	root_ptrs_table = dynamodb.Table('root_pointers')
+	try:
+		response = root_ptrs_table.get_item(
+			Key={
+				'name': fs
+			}
+		)
+	except ClientError as e:
+		return e.response['Error']['Message']
+
+	if not response.get('Item'):
+		return "Namespace {} does not exist".format(fs)
+
+	s3_bucket = response['Item']['bucket_name']
+	if version != None:
+		if version in response['Item']['root_cksums']:
+			root_cksum = version
+		else:
+			return "Version cksum {} is invalid".format(version)
 	else:
-		print('Error: {}'.format(msg))
-		exit(1)
+		root_cksum = response['Item']['root_cksums'][-1]
 
 	#find dir/file to be listed
 	root_node = fetch_node(fs, root_cksum)

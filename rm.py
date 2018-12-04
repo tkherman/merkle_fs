@@ -8,16 +8,14 @@ from MerkleNode import *
 
 def RM(fs, path, fromMV=False):
 	if path == "/":
-		print("Cannot remove root directory")
-		return "unsuccessful", None
+		return "Cannot remove root directory"
 
 	# Fetch root node for fs
 	success, msg = fetch_fs_root_node(fs)
 	if success:
 		s3_bucket, root_cksum = msg
 	else:
-		print('Error: {}'.format(msg))
-		return "unsuccessful", None
+		return 'Error: {}'.format(msg)
 
 	# Get node of directory the file/subdirectory is in
 	nodes_traversed = []
@@ -31,8 +29,7 @@ def RM(fs, path, fromMV=False):
 		nodes_traversed.append(root_node)
 
 	if not dir_node:
-		print("Error: {} cannot be found".format(path))
-		return "unsuccessful", None
+		return "Error: {} cannot be found".format(path)
 
 
 	# Create new MerkleNode for the dir_node
@@ -53,8 +50,7 @@ def RM(fs, path, fromMV=False):
 
 
 	if not index_to_remove: # the file couldn't be found so no action further
-		print("Error: {} cannot be found".format(path))
-		return "unsuccessful", None
+		return "Error: {} cannot be found".format(path)
 
 	del dir_info[index_to_remove]
 
@@ -68,5 +64,5 @@ def RM(fs, path, fromMV=False):
 
 	if not fromMV:
 		update_root_pointers_table(fs, curr_cksum)
-	return "successful", curr_cksum
-	
+	return curr_cksum
+
