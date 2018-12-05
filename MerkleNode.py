@@ -154,12 +154,12 @@ def fetch_fs_root_node(fs):
 	return success, retmsg
 
 # Bubble up and create new node for all ancestors
-def insert_new_node_bubble_up(fs, newNode, nodes_traversed):
+def insert_new_node_bubble_up(fs, newNode, nodes_traversed, isPUT=False):
 	insert_node(fs, newNode)
 
 	curr_fname = newNode.name
 	curr_cksum = newNode.cksum
-	for ancestor_node in reversed(nodes_traversed):
+	for k, ancestor_node in enumerate(reversed(nodes_traversed)):
 		new_aNode = MerkleNode()
 		new_aNode.name = ancestor_node.name
 		new_aNode.is_dir = ancestor_node.is_dir
@@ -167,12 +167,13 @@ def insert_new_node_bubble_up(fs, newNode, nodes_traversed):
 		# Generate new dir_info
 		new_dir_info = ancestor_node.dir_info
 		existing_node_found = False
-		if not len(new_dir_info) == 1: # there are sub files/directories inside
-			for sub_f in new_dir_info[1:]:
+		if not len(ancestor_node.dir_info) == 1: # there are sub files/dirs inside
+			for sub_f in ancestor_node.dir_info[1:]:
 				if sub_f[0] == curr_fname:
 					sub_f[1] = curr_cksum
 					existing_node_found = True
-					break
+					if k > 0 and not isPUT:
+						new_dir_info.append(sub_f)
 		if not existing_node_found:
 			new_dir_info.append([curr_fname, curr_cksum])
 		new_aNode.dir_info = new_dir_info
