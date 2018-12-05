@@ -43,7 +43,7 @@ def PUT(fs, src_filepath, dest_filepath):
 	newNode.mod_user = getpass.getuser()
 
 	# Insert to DB
-	curr_cksum = insert_new_node_bubble_up(fs, newNode, nodes_traversed, isPUT=True)
+	curr_cksum = insert_new_node_bubble_up(fs, newNode, nodes_traversed)
 
 	# Place actual file to S3 with name==cksum
 	s3.meta.client.upload_file(src_filepath, s3_bucket, newNode.cksum)
