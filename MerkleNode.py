@@ -31,7 +31,6 @@ class MerkleNode:
 def fetch_node(fs, cksum):
 	# Open the cache_file
 	entries_cache_filepath = tempfile.gettempdir() + "/merkle_fs_cache_entries"
-	#entries_cache_filepath = "/tmp/merkle_fs_cache_entries"
 	entries_cache_file = open(entries_cache_filepath, "r")
 
 	# Check if the entry exist in the cache file
