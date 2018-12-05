@@ -172,7 +172,7 @@ def insert_new_node_bubble_up(fs, newNode, nodes_traversed, isPUT=False):
 				if sub_f[0] == curr_fname:
 					sub_f[1] = curr_cksum
 					existing_node_found = True
-					if k > 0 and not isPUT:
+					if k > 0 or not isPUT:
 						new_dir_info.append(sub_f)
 		if not existing_node_found:
 			new_dir_info.append([curr_fname, curr_cksum])
