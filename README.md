@@ -2,88 +2,29 @@
 Distributed file system that keeps a customizable number of past file versions
 
 ---
+### Set up
+To run the filesystem, you must first run aws configure on your console and
+enter your credential. https://docs.aws.amazon.com/cli/latest/userguide/cli-chap-configure.html
+
+Then you need to go to DynamoDB AWS Console and create a table called "root_pointers"
+with "name" of type String as the key.
+
+After that, you can run:
+python set_up.py [namespace]
+
+Then you can run:
+python merkle_fs.py [operation]
+where the [operation] can be any of the following:
+    PUT 	fs src_path dest_path
+    GET		fs src_path dest_path [version cksum]
+    CP		fs src_path dest_path
+    MKDIR	fs path
+    LS		fs path [version cksum]
+    RM		fs path
+    MV		fs orig_path dest_path
+---
 ### Notes
 - Name of filesystem must contain only lowercase letters and hyphen(-)
-
----
-### DB Schema
-
-##### root_pointers
-- key
-    - name
-- values
-    - cksum             (string)
-    - bucket_name       (string)
-
-##### Namespace
-- key
-    - cksum
-- values
-    - name              (string)
-    - is_dir            (boolean)
-    - s3_ref            (list of lists) / if we set cksum to be file name, then
-      we don't need this, can keep track of versions I suppose
-    - dir_info          (list of lists) - (name, cksum) - first is (abspath, None)
-    - mod_time          (string)
-    - mod_user          (string)
-
 ---
 ### Hashing
 Use Python built in hashlib, sha256, and exchange over network as hex string
-
----
-### Operations
-
-*(Note: on all of the below if an invalid filepath is entered, return an error)*
-
-- PUT
-    - traverse through merkle tree to identify node
-    - calculate checksum of new file
-    - add file to s3 (use s3 versioning)
-    - create new node for file
-    - bubble up and make new nodes for all ancestors
-    
-- GET
-    - traverse through merkle tree to identify node
-    - fetch file and save to local
-
-- MKDIR
-    - traverse through merkle tree to find the parent node for the new directory
-    - calculate checksum of new directory
-    - create new node for the new directory
-    - bubble up and make new nodes for all ancestors
-
-- LS
-    - traverse through merkle tree to find node (should be a directory node)
-    - check if is_dir
-        - if yes:
-            - go through dir_info, collect all filenames, and return
-        - if no:
-            - return the name of the file
-- CP
-    - traverse through merkle tree to find node of source file
-    - traverse through merkle tree to find node of destination directory
-    - steps to add file to new directory:
-        - calculate checksum of new file
-        - duplicate the file in s3 and properly name it
-        - create new node for file
-        - bubble up and make new nodes for all ancestors
-- RM
-    - traverse through merkle tree to identify the node
-    - generate a new checksum for the new parent node
-    - create a new node for the parent directory without the target file in it
-    - bubble up and make new nodes for all ancestors
-- RMDIR
-    - traverse through merkle tree to identify the node
-    - generate a new checksum for the new parent node
-    - create a new node for the parent directory without any children
-    - bubble up and make new nodes for all ancestors
-- MV
-    - traverse through merkle tree to find node of source file and store in memory
-    - traverse through merkle tree to find node of destination directory
-    - perform a RM on the source file
-    - steps to add file to new directory
-        - calculate checksum of new file 
-        - create new node for file (even though it's the same file, need to create new node for versioning)
-        - bubble up and make new nodes for all ancestors
-        
