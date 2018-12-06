@@ -35,11 +35,11 @@ def PUT(fs, src_filepath, dest_filepath):
 
 	# Create MerkleNode object for new node
 	newNode = MerkleNode()
-	newNode.cksum = calculate_cksum(src_filepath, dest_filepath)
+	newNode.mod_time = datetime.datetime.now().strftime('%Y-%m-%dT%H:%M:%S')
+	newNode.cksum = calculate_cksum(src_filepath, dest_filepath, newNode.mod_time)
 	newNode.name = dest_filepath_list[-1]
 	newNode.is_dir = False
 	newNode.dir_info = None
-	newNode.mod_time = datetime.datetime.now().strftime('%Y-%m-%dT%H:%M:%S')
 	newNode.mod_user = getpass.getuser()
 
 	# Insert to DB
