@@ -6,7 +6,7 @@ Distributed file system that keeps a customizable number of past file versions
 To run the filesystem, you must first run aws configure on your console and
 enter your credential. https://docs.aws.amazon.com/cli/latest/userguide/cli-chap-configure.html
 
-Then you need to go to DynamoDB AWS Console and create a table called "root_pointers"
+Next, you need to go to DynamoDB AWS Console and create a table called "root_pointers"
 with "name" of type String as the key.
 
 After that, you can run:
@@ -25,7 +25,7 @@ where the [operation] can be any of the following:
     
 ---
 ### Notes
-- Name of filesystem must contain only lowercase letters and hyphen(-)
+- Name of filesystem must contain only lowercase letters and hyphens(-)
 ---
 ### Hashing
 Use Python built in hashlib, sha256, and exchange over network as hex string

@@ -30,10 +30,6 @@ def MV(fs, orig_filepath, dest_filepath):
 	else:
 		_, orig_node = get_merkle_node_by_name(fs, root_node, orig_filepath_list, list())
 
-	#TODO - note:	potential optimization would be to store the directory node for the
-	#				original file as well because if copying to the same directory this
-	#				would save queries to DynamoDB
-
 	# Preform RM on the original file
 	new_root_cksum = RM(fs, orig_filepath, fromMV=True)
 	if success == "unsuccessful":
@@ -67,7 +63,7 @@ def MV(fs, orig_filepath, dest_filepath):
 	newNode.name = new_filepath_list[-1]
 
 
-	# TODO - figure out a way to not have to duplicate the file in S3
+	# duplicate the file in S3 w/new cksum as name
 	copy_source = {
 		'Bucket': s3_bucket,
 		'Key': orig_node.cksum
@@ -78,7 +74,5 @@ def MV(fs, orig_filepath, dest_filepath):
 	curr_cksum = insert_new_node_bubble_up(fs, newNode, nodes_traversed)
 
 	update_root_pointers_table(fs, curr_cksum)
-
-	#TODO - remove intermediate node
 
 	return curr_cksum

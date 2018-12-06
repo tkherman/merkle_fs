@@ -112,9 +112,9 @@ def insert_node(fs, mNode):
 def calculate_cksum(src_filepath, dest_filepath, create_time):
 	hasher = hashlib.sha256()
 	hasher.update(create_time)
-	hasher.update("********") #TODO - eventually make this a random hash
+	hasher.update("********") #unnecessary but helps code readability
 	hasher.update(dest_filepath)
-	hasher.update("********") #TODO - eventually make this a random hash
+	hasher.update("********")
 	with open(src_filepath, "rb") as f:
 		for chunk in iter(lambda: f.read(4096), b""):
 			hasher.update(chunk)

@@ -29,10 +29,6 @@ def CP(fs, orig_filepath, dest_filepath):
 	else:
 		_, orig_node = get_merkle_node_by_name(fs, root_node, orig_filepath_list, list())
 
-	#TODO - note:	potential optimization would be to store the directory node for the
-	#				original file as well because if copying to the same directory this
-	#				would save queries to DynamoDB
-
 	# Get node of new directory that the file is to be placed in
 	new_filepath_list = dest_filepath.strip().lstrip('/').split('/')
 	nodes_traversed = []
@@ -60,7 +56,7 @@ def CP(fs, orig_filepath, dest_filepath):
 	newNode.name = new_filepath_list[-1]
 
 
-	# TODO - figure out a way to not have to duplicate the file in S3
+	# duplicate the file in S3 w/new cksum as name
 	copy_source = {
 		'Bucket': s3_bucket,
 		'Key': orig_node.cksum
