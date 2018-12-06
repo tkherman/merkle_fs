@@ -38,18 +38,11 @@ Use Python built in hashlib, sha256, and exchange over network as hex string
 
 - PUT
     - traverse through merkle tree to identify node
-    - check if node mod_user was self
-        - if yes:
-            - calculate checksum of new file
-            - add file to s3 (use s3 versioning)
-            - create new node for file
-            - bubble up and make new nodes for all ancestors
-        - if no:
-            - ask if user wants to review newest version of file or overwrite directly
-                - if yes:
-                    - fetch "newest version"
-                - if no:
-                    - overwrite directly with procedure similar to yes above
+    - calculate checksum of new file
+    - add file to s3 (use s3 versioning)
+    - create new node for file
+    - bubble up and make new nodes for all ancestors
+    
 - GET
     - traverse through merkle tree to identify node
     - fetch file and save to local
