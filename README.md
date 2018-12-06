@@ -15,13 +15,14 @@ python set_up.py [namespace]
 Then you can run:  
 python merkle_fs.py [operation]  
 where the [operation] can be any of the following:  
-    PUT 	fs src_path dest_path  
-    GET		fs src_path dest_path [version cksum]  
-    CP		fs src_path dest_path  
-    MKDIR	fs path  
-    LS		fs path [version cksum]  
-    RM		fs path  
-    MV		fs orig_path dest_path  
+> PUT 	    fs src_path dest_path  
+> GET		fs src_path dest_path [version cksum]  
+> CP		fs src_path dest_path  
+> MKDIR	    fs path  
+> LS		fs path [version cksum]  
+> RM		fs path  
+> MV		fs orig_path dest_path  
+    
 ---
 ### Notes
 - Name of filesystem must contain only lowercase letters and hyphen(-)
