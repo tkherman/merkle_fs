@@ -77,8 +77,10 @@ def insert_node(fs, mNode):
 	return True
 
 # calculate cksum of new file
-def calculate_cksum(src_filepath, dest_filepath):
+def calculate_cksum(src_filepath, dest_filepath, create_time):
 	hasher = hashlib.sha256()
+	hasher.update(create_time)
+	hasher.update("********") #TODO - eventually make this a random hash
 	hasher.update(dest_filepath)
 	hasher.update("********") #TODO - eventually make this a random hash
 	with open(src_filepath, "rb") as f:
