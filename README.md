@@ -1,4 +1,4 @@
-# git_storage
+# merkle_fs
 Distributed file system that keeps a customizable number of past file versions
 
 ---
